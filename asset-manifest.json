@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/Tesla_FSD_Tracker_GLOBE/static/css/main.7c421f50.css",
+    "main.js": "/Tesla_FSD_Tracker_GLOBE/static/js/main.8570bf96.js",
+    "static/media/BlueMarbleTexture_10800x5400.png": "/Tesla_FSD_Tracker_GLOBE/static/media/BlueMarbleTexture_10800x5400.7f2e424fd7373dabc088.png",
+    "index.html": "/Tesla_FSD_Tracker_GLOBE/index.html",
+    "main.7c421f50.css.map": "/Tesla_FSD_Tracker_GLOBE/static/css/main.7c421f50.css.map",
+    "main.8570bf96.js.map": "/Tesla_FSD_Tracker_GLOBE/static/js/main.8570bf96.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.7c421f50.css",
+    "static/js/main.8570bf96.js"
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "name": "tesla-fsd-globe",
+  "name": "tesla-fsd-tracker-globe",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -39,5 +39,5 @@
   "devDependencies": {
     "gh-pages": "^6.3.0"
   },
-  "homepage": "https://TimoWey.github.io/FSD_Progress_Tracker"
+  "homepage": "https://TimoWey.github.io/Tesla_FSD_Tracker_GLOBE"
 }

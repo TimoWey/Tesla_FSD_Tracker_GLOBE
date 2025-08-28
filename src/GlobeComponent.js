@@ -200,28 +200,42 @@ const GlobeComponent = ({ onCountrySelect, fsdData = {} }) => {
         const controls = myGlobe.controls();
         const countryName = d.properties.name;
 
-        // If clicking the same country that's already selected, deselect it
-        if (selectedCountryRef.current === d) {
-          selectedCountryRef.current = null;
-          highlightedCountryRef.current = null;
-          handleCountrySelect(null, false);
-          myGlobe.updateAutoRotate();
-        }
-        // If clicking a different country that's highlighted, select it and show info
-        else if (highlightedCountryRef.current === d) {
-          selectedCountryRef.current = d;
-          highlightedCountryRef.current = null;
-          handleCountrySelect(countryName, true);
-          myGlobe.updateAutoRotate();
-        } 
-        // If clicking a new country, highlight it first
-        else {
-          highlightedCountryRef.current = d;
-          selectedCountryRef.current = null;
-          handleCountrySelect(countryName, false);
-          myGlobe.updateAutoRotate();
+        // Desktop: Single click shows info immediately
+        if (!isMobileDevice()) {
+          if (selectedCountryRef.current === d) {
+            // Deselect if clicking the same country
+            selectedCountryRef.current = null;
+            highlightedCountryRef.current = null;
+            handleCountrySelect(null, false);
+          } else {
+            // Select new country and show info
+            selectedCountryRef.current = d;
+            highlightedCountryRef.current = null;
+            handleCountrySelect(countryName, true);
+          }
+        } else {
+          // Mobile: Two-tap system
+          // If clicking the same country that's already selected, deselect it
+          if (selectedCountryRef.current === d) {
+            selectedCountryRef.current = null;
+            highlightedCountryRef.current = null;
+            handleCountrySelect(null, false);
+          }
+          // If clicking a different country that's highlighted, select it and show info
+          else if (highlightedCountryRef.current === d) {
+            selectedCountryRef.current = d;
+            highlightedCountryRef.current = null;
+            handleCountrySelect(countryName, true);
+          } 
+          // If clicking a new country, highlight it first
+          else {
+            highlightedCountryRef.current = d;
+            selectedCountryRef.current = null;
+            handleCountrySelect(countryName, false);
+          }
         }
 
+        myGlobe.updateAutoRotate();
         myGlobe
           .polygonStrokeColor(myGlobe.polygonStrokeColor())
           .polygonAltitude(myGlobe.polygonAltitude());
@@ -258,7 +272,7 @@ const GlobeComponent = ({ onCountrySelect, fsdData = {} }) => {
         touchAction: 'none'  // Added back for proper touch handling on mobile
       }}
     >
-      {highlightedCountryRef.current && (
+      {highlightedCountryRef.current && isMobileDevice() && (
         <div
           style={{
             position: 'absolute',

@@ -99,6 +99,15 @@ const LeftSidebar = ({ isVisible, onClose }) => {
         </div>
 
         <div className="info-section">
+          <h3>Build Information</h3>
+          <div className="build-info">
+            <p><strong>Version:</strong> 0.1.0</p>
+            <p><strong>Build Date:</strong> {new Date().toLocaleDateString()}</p>
+            <p><strong>Environment:</strong> {process.env.NODE_ENV || 'development'}</p>
+          </div>
+        </div>
+
+        <div className="info-section">
           <h3>Quick Links</h3>
           <div className="quick-links">
             <a 

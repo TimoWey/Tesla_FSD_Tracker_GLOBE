@@ -124,6 +124,7 @@ function App() {
         selectedCountry={selectedCountry}
         fsdData={fsdData}
         isVisible={!!selectedCountry}
+        onClose={() => setSelectedCountry(null)}
       />
     </div>
   );

@@ -46,8 +46,12 @@ function App() {
   }, [leftSidebarVisible]);
 
   // Memoize the country selection handler to prevent unnecessary re-renders
-  const handleCountrySelect = useCallback((country) => {
-    setSelectedCountry(country);
+  const handleCountrySelect = useCallback((country, showInfo = false) => {
+    if (showInfo) {
+      setSelectedCountry(country);
+    } else {
+      setSelectedCountry(null);
+    }
   }, []);
 
   const toggleLeftSidebar = useCallback(() => {

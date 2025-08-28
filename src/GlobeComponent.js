@@ -1,190 +1,265 @@
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import * as THREE from 'three';
+import React, { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import Globe from 'globe.gl';
-// import worldColourImage from './assets/BlueMarbleTexture_5400x1700.jpg';
-import worldColourImage from './assets/BlueMarbleTexture_10800x5400.png';
+import worldColourImageHigh from './assets/BlueMarbleTexture_10800x5400.png';
+import worldColourImageMobile from './assets/BlueMarbleTexture_5400x1700.jpg';
 import countryData from './assets/custom.geo.json';
+import { detectWebGLSupport, isMobileDevice, getMobileOptimizedSettings } from './utils/webglDetection';
 
-const GlobeComponent = ({ onCountrySelect, fsdData = {} }) => {
+const getWorldTexture = () => isMobileDevice() ? worldColourImageMobile : worldColourImageHigh;
+
+const GlobeComponent = ({ onCountrySelect }) => {
   const globeRef = useRef(null);
   const globeInstance = useRef(null);
   const selectedCountryRef = useRef(null);
-  const isInitialized = useRef(false);
+  const highlightedCountryRef = useRef(null);
   const autoRotateTimeoutRef = useRef(null);
+  const [webglError, setWebglError] = useState(null);
 
-  // Stable country selection handler
+  const isMobile = useMemo(() => isMobileDevice(), []);
+
   const handleCountrySelect = useCallback(
-    (countryName) => {
-      if (onCountrySelect) onCountrySelect(countryName);
-    },
+    (countryName, showInfo = false) => onCountrySelect?.(countryName, showInfo),
     [onCountrySelect]
   );
 
-  // Stable polygons data
   const countryPolygons = useMemo(() => {
     if (!countryData.features?.length) return [];
     return countryData.features.map((feature) => ({
       geometry: feature.geometry,
-      properties: {
-        name: feature.properties.name || feature.properties.admin || 'Unknown'
-      }
+      properties: { name: feature.properties.name || feature.properties.admin || 'Unknown' }
     }));
   }, []);
 
-  // Initialize globe only once
+  // Combined WebGL check and globe initialization in one effect for efficiency
   useEffect(() => {
-    if (!globeRef.current || isInitialized.current) return;
-
-    const myGlobe = Globe()
-      .globeImageUrl(worldColourImage)
-      .backgroundImageUrl('//cdn.jsdelivr.net/npm/three-globe/example/img/night-sky.png')
-      (globeRef.current);
-
-    globeInstance.current = myGlobe;
-    isInitialized.current = true;
-
-    // Custom material
-    const globeMaterial = myGlobe.globeMaterial();
-    globeMaterial.bumpScale = 10;
-    new THREE.TextureLoader().load(
-      '//cdn.jsdelivr.net/npm/three-globe/example/img/earth-water.png',
-      (texture) => {
-        globeMaterial.specularMap = texture;
-        globeMaterial.specular = new THREE.Color('grey');
-        globeMaterial.shininess = 15;
+    if (globeRef.current && !globeInstance.current && !webglError) {
+      const webglSupport = detectWebGLSupport();
+      if (!webglSupport.supported) {
+        setWebglError(webglSupport.reason);
+        return;
       }
-    );
 
-    // Light setup
-    const directionalLight = myGlobe.lights().find((l) => l.type === 'DirectionalLight');
-    if (directionalLight) directionalLight.position.set(1, 1, 1);
+      try {
+        const container = globeRef.current;
+        const width = container.clientWidth || window.innerWidth;
+        const height = container.clientHeight || window.innerHeight;
+        const settings = getMobileOptimizedSettings();
 
-    // Controls
-    const controls = myGlobe.controls();
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.15;
-    controls.panDampingFactor = 0.15;
-    controls.rotateDampingFactor = 0.15;
-    controls.zoomDampingFactor = 0.15;
-    controls.inertia = 0.8;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.25;
+        const myGlobe = Globe({
+          rendererConfig: {
+            antialias: settings.antialias,
+            alpha: settings.alpha,
+            powerPreference: settings.powerPreference,
+            preserveDrawingBuffer: settings.preserveDrawingBuffer,
+            failIfMajorPerformanceCaveat: settings.failIfMajorPerformanceCaveat
+          }
+        })
+          .width(width)
+          .height(height)
+          .globeImageUrl(getWorldTexture())
+          .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')(container);
 
-    // Auto-rotation handler
-    const stopAutoRotate = () => {
-      controls.autoRotate = false;
-      if (autoRotateTimeoutRef.current) clearTimeout(autoRotateTimeoutRef.current);
-      autoRotateTimeoutRef.current = setTimeout(() => {
-        if (!selectedCountryRef.current) controls.autoRotate = true;
-      }, 3000);
-    };
-    controls.addEventListener('start', stopAutoRotate);
+        globeInstance.current = myGlobe;
 
-    // Initial POV
-    myGlobe.pointOfView({ lat: 0, lng: 0, altitude: 2.5 }, 0);
+        // Configure material and lighting
+        const globeMaterial = myGlobe.globeMaterial();
+        globeMaterial.bumpScale = isMobile ? 5 : 10;
+
+        const directionalLight = myGlobe.lights().find((l) => l.type === 'DirectionalLight');
+        if (directionalLight) directionalLight.position.set(1, 1, 1);
+
+        // Configure controls
+        const controls = myGlobe.controls();
+        controls.enableDamping = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = settings.autoRotateSpeed;
+
+        // Function to toggle auto-rotate based on selection/highlight state
+        const updateAutoRotate = () => {
+          controls.autoRotate = !selectedCountryRef.current && !highlightedCountryRef.current;
+        };
+        myGlobe.updateAutoRotate = updateAutoRotate;
+
+        const stopAutoRotateTemporarily = () => {
+          controls.autoRotate = false;
+          if (autoRotateTimeoutRef.current) clearTimeout(autoRotateTimeoutRef.current);
+          autoRotateTimeoutRef.current = setTimeout(updateAutoRotate, 3000);
+        };
+        controls.addEventListener('start', stopAutoRotateTemporarily);
+
+        myGlobe.pointOfView({ lat: 0, lng: 0, altitude: settings.initialAltitude }, 0);
+
+        // Handle resize
+        const handleResize = () => {
+          myGlobe.width(container.clientWidth || window.innerWidth).height(container.clientHeight || window.innerHeight);
+        };
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', () => setTimeout(handleResize, 100));
+        myGlobe.handleResize = handleResize;
+
+        // Mobile tap-to-click simulation
+        if (isMobile) {
+          const canvas = myGlobe.renderer().domElement;
+          let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+
+          canvas.addEventListener('pointerdown', (e) => {
+            if (e.pointerType === 'touch') {
+              touchStartX = e.clientX;
+              touchStartY = e.clientY;
+              touchStartTime = Date.now();
+            }
+          });
+
+          canvas.addEventListener('pointerup', (e) => {
+            if (e.pointerType === 'touch') {
+              const deltaX = Math.abs(e.clientX - touchStartX);
+              const deltaY = Math.abs(e.clientY - touchStartY);
+              const deltaTime = Date.now() - touchStartTime;
+              if (deltaX < 10 && deltaY < 10 && deltaTime < 500) {
+                canvas.dispatchEvent(new MouseEvent('click', {
+                  clientX: e.clientX,
+                  clientY: e.clientY,
+                  bubbles: true,
+                  cancelable: true,
+                  view: window
+                }));
+              }
+            }
+          });
+        }
+      } catch (err) {
+        setWebglError(`Failed to initialize globe: ${err.message}`);
+      }
+    }
 
     return () => {
-      isInitialized.current = false;
       if (autoRotateTimeoutRef.current) clearTimeout(autoRotateTimeoutRef.current);
-
-      if (globeRef.current) globeRef.current.innerHTML = '';
-      if (globeInstance.current) {
-        try {
-          const { scene, renderer } = globeInstance.current;
-          if (renderer?.dispose) renderer.dispose();
-          if (scene) scene.clear();
-          if (renderer?.getContext) {
-            const gl = renderer.getContext();
-            const loseContext = gl?.getExtension('WEBGL_lose_context');
-            loseContext?.loseContext();
-          }
-        } catch (err) {
-          console.warn('Error during globe cleanup:', err);
-        }
-        globeInstance.current = null;
+      if (globeInstance.current?.handleResize) {
+        window.removeEventListener('resize', globeInstance.current.handleResize);
+        window.removeEventListener('orientationchange', globeInstance.current.handleResize);
       }
+      globeInstance.current = null; // Reset for potential re-init
     };
-  }, []);
+  }, [webglError, isMobile]);
 
-  // Update globe polygons when fsdData is ready
+  // Polygon setup effect (runs only after globe init and polygons are ready)
   useEffect(() => {
-    if (!globeInstance.current || !Object.keys(fsdData).length) return;
+    if (!globeInstance.current || !countryPolygons.length) return;
 
     const myGlobe = globeInstance.current;
     let hoverD = null;
+
+    // Define dynamic polygon styles (called once, but functions are dynamic)
+    const getStrokeColor = (d) => {
+      if (d === selectedCountryRef.current) return 'rgba(0,255,0,0.8)';
+      if (d === highlightedCountryRef.current) return 'rgba(255,255,0,0.8)';
+      if (d === hoverD) return 'rgba(255,255,255,0.8)';
+      return 'rgba(255,255,255,0)';
+    };
+
+    const getAltitude = (d) => {
+      if (d === selectedCountryRef.current) return 0.008;
+      if (d === highlightedCountryRef.current || d === hoverD) return 0.005;
+      return 0.003;
+    };
 
     myGlobe
       .polygonsData(countryPolygons)
       .polygonsTransitionDuration(200)
       .polygonCapColor(() => 'rgba(0,0,0,0.001)')
       .polygonSideColor(() => 'rgba(0,0,0,0)')
-      .polygonStrokeColor((d) => {
-        if (d === selectedCountryRef.current) return 'rgba(0,255,0,0.8)';
-        if (d === hoverD) return 'rgba(255,255,255,0.8)';
-        return 'rgba(255,255,255,0)';
-      })
-      .polygonAltitude((d) => {
-        if (d === selectedCountryRef.current) return 0.008;
-        if (d === hoverD) return 0.005;
-        return 0.003;
-      })
-      .polygonCapCurvatureResolution(5)
+      .polygonStrokeColor(getStrokeColor)
+      .polygonAltitude(getAltitude)
+      .polygonLabel((d) => d?.properties?.name || '')
       .onPolygonHover((d) => {
-        hoverD = d || null;
-        myGlobe
-          .polygonStrokeColor(myGlobe.polygonStrokeColor())
-          .polygonAltitude(myGlobe.polygonAltitude());
+        hoverD = d;
+        myGlobe.polygonStrokeColor(getStrokeColor).polygonAltitude(getAltitude);
       })
       .onPolygonClick((d) => {
         if (!d) return;
         const countryName = d.properties.name;
-        const controls = myGlobe.controls();
 
-        if (selectedCountryRef.current === d) {
-          selectedCountryRef.current = null;
-          handleCountrySelect(null);
-          controls.autoRotate = true;
+        if (isMobile) {
+          // Mobile: Two-tap logic
+          if (selectedCountryRef.current === d) {
+            // Deselect
+            selectedCountryRef.current = null;
+            highlightedCountryRef.current = null;
+            handleCountrySelect(null, false);
+          } else if (highlightedCountryRef.current === d) {
+            // Select and show info
+            selectedCountryRef.current = d;
+            highlightedCountryRef.current = null;
+            handleCountrySelect(countryName, true);
+          } else {
+            // Highlight
+            highlightedCountryRef.current = d;
+            selectedCountryRef.current = null;
+            handleCountrySelect(countryName, false);
+          }
         } else {
-          selectedCountryRef.current = d;
-          handleCountrySelect(countryName);
-          controls.autoRotate = false;
+          // Desktop: Toggle select/deselect
+          if (selectedCountryRef.current === d) {
+            selectedCountryRef.current = null;
+            handleCountrySelect(null, false);
+          } else {
+            selectedCountryRef.current = d;
+            highlightedCountryRef.current = null;
+            handleCountrySelect(countryName, true);
+          }
         }
 
-        myGlobe
-          .polygonStrokeColor(myGlobe.polygonStrokeColor())
-          .polygonAltitude(myGlobe.polygonAltitude());
-      })
-      .polygonLabel((d) => d?.properties?.name || '');
+        myGlobe.updateAutoRotate();
+        myGlobe.polygonStrokeColor(getStrokeColor).polygonAltitude(getAltitude);
+      });
 
     myGlobe.onGlobeClick(() => {
       selectedCountryRef.current = null;
-      handleCountrySelect(null);
-      const controls = myGlobe.controls();
-      controls.autoRotate = true;
-      myGlobe
-        .polygonStrokeColor(myGlobe.polygonStrokeColor())
-        .polygonAltitude(myGlobe.polygonAltitude());
+      highlightedCountryRef.current = null;
+      handleCountrySelect(null, false);
+      myGlobe.updateAutoRotate();
+      myGlobe.polygonStrokeColor(getStrokeColor).polygonAltitude(getAltitude);
     });
-  }, [fsdData, countryPolygons, handleCountrySelect]);
+  }, [countryPolygons, handleCountrySelect, isMobile]);
 
-  if (!Object.keys(fsdData).length) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          fontSize: '18px',
-          color: '#666'
-        }}
-      >
-        Loading globe data from spreadsheet...
-      </div>
-    );
+  if (webglError) {
+    return <div style={{ color: 'red', padding: 20 }}>3D Globe not available: {webglError}</div>;
   }
 
-  return <div ref={globeRef} style={{ width: '100vw', height: '100vh' }} />;
+  return (
+    <div
+      ref={globeRef}
+      style={{
+        width: '100vw',
+        height: '100vh',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none',
+        touchAction: 'none'
+      }}
+    >
+      {highlightedCountryRef.current && isMobile && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            color: 'white',
+            padding: '10px 20px',
+            borderRadius: '20px',
+            fontSize: '14px',
+            zIndex: 1000,
+            pointerEvents: 'none',
+            animation: 'fadeInOut 2s ease-in-out infinite'
+          }}
+        >
+          Tap again to see information
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default GlobeComponent;

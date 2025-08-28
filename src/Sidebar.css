@@ -4,6 +4,9 @@
   right: 0;
   width: 400px;
   height: 100vh;
+  min-height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  min-height: 100dvh;
   background: rgba(17, 24, 39, 0.95);
   backdrop-filter: blur(20px);
   border-left: 1px solid rgba(75, 85, 99, 0.3);
@@ -23,14 +26,21 @@
   padding: 24px;
   border-bottom: 1px solid rgba(75, 85, 99, 0.3);
   background: rgba(31, 41, 55, 0.5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .sidebar-header h2 {
-  margin: 0 0 16px 0;
+  margin: 0;
   font-size: 28px;
   font-weight: 700;
   color: #f9fafb;
   letter-spacing: -0.025em;
+  flex: 1;
+  min-width: 0;
 }
 
 .status-badge {
@@ -43,6 +53,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
 }
 
 .status-badge.no-data {
@@ -50,8 +61,36 @@
   opacity: 0.8;
 }
 
+.close-button {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.close-button:hover {
+  color: #e5e7eb;
+  background: rgba(75, 85, 99, 0.3);
+}
+
+.close-button:active {
+  transform: scale(0.95);
+}
+
 .sidebar-content {
   padding: 24px;
+  padding-bottom: 100px; /* Ensure content is not cut off on mobile */
 }
 
 .info-section {
@@ -288,10 +327,72 @@
   .sidebar {
     width: 100vw;
     transform: translateX(100%);
+    height: 100vh;
+    min-height: 100vh;
+    height: 100dvh; /* Use dynamic viewport height for mobile */
+    min-height: 100dvh;
   }
   
   .sidebar.visible {
     transform: translateX(0);
+  }
+
+  .sidebar-header {
+    padding: 20px;
+  }
+
+  .sidebar-header h2 {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  .close-button {
+    width: 40px;
+    height: 40px;
+    font-size: 28px;
+    /* Better touch target for mobile */
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .sidebar-content {
+    padding: 20px;
+    padding-bottom: 120px; /* Extra bottom padding for mobile */
+  }
+
+  .info-section {
+    margin-bottom: 24px;
+  }
+
+  .info-section h3 {
+    font-size: 16px;
+  }
+
+  .info-section p {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar-header {
+    padding: 16px;
+  }
+
+  .sidebar-header h2 {
+    font-size: 20px;
+  }
+
+  .sidebar-content {
+    padding: 16px;
+    padding-bottom: 140px; /* Even more bottom padding for small mobile */
+  }
+
+  .info-section h3 {
+    font-size: 15px;
+  }
+
+  .info-section p {
+    font-size: 13px;
   }
 }
 

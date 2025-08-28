@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useCallback, useMemo, useState } from 'react';
-import * as THREE from 'three';
 import Globe from 'globe.gl';
 import worldColourImageHigh from './assets/BlueMarbleTexture_10800x5400.png';
 import worldColourImageMobile from './assets/BlueMarbleTexture_5400x1700.jpg';
@@ -14,14 +13,15 @@ const GlobeComponent = ({ onCountrySelect, fsdData = {} }) => {
   const globeRef = useRef(null);
   const globeInstance = useRef(null);
   const selectedCountryRef = useRef(null);
+  const highlightedCountryRef = useRef(null);
   const isInitialized = useRef(false);
   const autoRotateTimeoutRef = useRef(null);
   const [webglError, setWebglError] = useState(null);
   const [isWebGLChecked, setIsWebGLChecked] = useState(false);
 
   const handleCountrySelect = useCallback(
-    (countryName) => {
-      if (onCountrySelect) onCountrySelect(countryName);
+    (countryName, showInfo = false) => {
+      if (onCountrySelect) onCountrySelect(countryName, showInfo);
     },
     [onCountrySelect]
   );
@@ -70,7 +70,17 @@ const GlobeComponent = ({ onCountrySelect, fsdData = {} }) => {
         .globeImageUrl(getWorldTexture())
         .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')(container);
 
+                    // Function to control auto-rotate based on country selection state
+      const updateAutoRotate = () => {
+        if (selectedCountryRef.current || highlightedCountryRef.current) {
+          controls.autoRotate = false;
+        } else {
+          controls.autoRotate = true;
+        }
+      };
+
       globeInstance.current = myGlobe;
+      globeInstance.current.updateAutoRotate = updateAutoRotate;
       isInitialized.current = true;
 
       // Material
@@ -91,7 +101,7 @@ const GlobeComponent = ({ onCountrySelect, fsdData = {} }) => {
         controls.autoRotate = false;
         if (autoRotateTimeoutRef.current) clearTimeout(autoRotateTimeoutRef.current);
         autoRotateTimeoutRef.current = setTimeout(() => {
-          if (!selectedCountryRef.current) controls.autoRotate = true;
+          if (!selectedCountryRef.current && !highlightedCountryRef.current) controls.autoRotate = true;
         }, 3000);
       };
       controls.addEventListener('start', stopAutoRotate);
@@ -168,11 +178,13 @@ const GlobeComponent = ({ onCountrySelect, fsdData = {} }) => {
       .polygonSideColor(() => 'rgba(0,0,0,0)')
       .polygonStrokeColor((d) => {
         if (d === selectedCountryRef.current) return 'rgba(0,255,0,0.8)';
+        if (d === highlightedCountryRef.current) return 'rgba(255,255,0,0.8)';
         if (d === hoverD) return 'rgba(255,255,255,0.8)';
         return 'rgba(255,255,255,0)';
       })
       .polygonAltitude((d) => {
         if (d === selectedCountryRef.current) return 0.008;
+        if (d === highlightedCountryRef.current) return 0.005;
         if (d === hoverD) return 0.005;
         return 0.003;
       })
@@ -188,14 +200,26 @@ const GlobeComponent = ({ onCountrySelect, fsdData = {} }) => {
         const controls = myGlobe.controls();
         const countryName = d.properties.name;
 
+        // If clicking the same country that's already selected, deselect it
         if (selectedCountryRef.current === d) {
           selectedCountryRef.current = null;
-          handleCountrySelect(null);
-          controls.autoRotate = true;
-        } else {
+          highlightedCountryRef.current = null;
+          handleCountrySelect(null, false);
+          myGlobe.updateAutoRotate();
+        }
+        // If clicking a different country that's highlighted, select it and show info
+        else if (highlightedCountryRef.current === d) {
           selectedCountryRef.current = d;
-          handleCountrySelect(countryName);
-          controls.autoRotate = false;
+          highlightedCountryRef.current = null;
+          handleCountrySelect(countryName, true);
+          myGlobe.updateAutoRotate();
+        } 
+        // If clicking a new country, highlight it first
+        else {
+          highlightedCountryRef.current = d;
+          selectedCountryRef.current = null;
+          handleCountrySelect(countryName, false);
+          myGlobe.updateAutoRotate();
         }
 
         myGlobe
@@ -205,8 +229,9 @@ const GlobeComponent = ({ onCountrySelect, fsdData = {} }) => {
 
     myGlobe.onGlobeClick(() => {
       selectedCountryRef.current = null;
-      handleCountrySelect(null);
-      myGlobe.controls().autoRotate = true;
+      highlightedCountryRef.current = null;
+      handleCountrySelect(null, false);
+      myGlobe.updateAutoRotate();
       myGlobe
         .polygonStrokeColor(myGlobe.polygonStrokeColor())
         .polygonAltitude(myGlobe.polygonAltitude());
@@ -232,7 +257,28 @@ const GlobeComponent = ({ onCountrySelect, fsdData = {} }) => {
         WebkitTouchCallout: 'none',
         touchAction: 'none'  // Added back for proper touch handling on mobile
       }}
-    />
+    >
+      {highlightedCountryRef.current && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            color: 'white',
+            padding: '10px 20px',
+            borderRadius: '20px',
+            fontSize: '14px',
+            zIndex: 1000,
+            pointerEvents: 'none',
+            animation: 'fadeInOut 2s ease-in-out infinite'
+          }}
+        >
+          Tap again to see information
+        </div>
+      )}
+    </div>
   );
 };
 

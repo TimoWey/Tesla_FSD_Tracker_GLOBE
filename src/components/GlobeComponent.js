@@ -25,7 +25,7 @@ import countryData from '../assets/custom.geo.json';
 import { detectWebGLSupport, isMobileDevice } from '../utils/webglDetection';
 
 // Constants
-import { GLOBE_CONFIG, DEFAULTS, ERROR_MESSAGES } from '../constants';
+import { GLOBE_CONFIG, DEFAULTS } from '../constants';
 
 const GlobeComponent = ({ onCountrySelect, fsdData }) => {
   // Refs
@@ -228,7 +228,7 @@ const GlobeComponent = ({ onCountrySelect, fsdData }) => {
 
     } catch (err) {
       console.error('❌ Failed to initialize globe:', err);
-      setWebglError(`${ERROR_MESSAGES.GLOBE_INIT_FAILED}: ${err.message}`);
+      setWebglError(`Failed to initialize 3D globe: ${err.message}`);
     }
   }, [webglError, isMobile, worldTexture, globeSettings, setupMobileTouchHandling]);
 

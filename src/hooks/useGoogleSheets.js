@@ -1,6 +1,5 @@
 /**
- * Custom hook for managing Google Sheets data fetching
- * Provides data, loading state, error handling, and refresh functionality
+ * Simplified hook for managing Google Sheets data fetching
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -10,7 +9,6 @@ export const useGoogleSheets = () => {
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -19,14 +17,7 @@ export const useGoogleSheets = () => {
       
       const result = await fetchFSDData();
       setData(result.fsdData);
-      setLastUpdated(result.lastUpdated);
-      
-      console.log('✅ FSD data loaded successfully:', {
-        countries: Object.keys(result.fsdData).length,
-        lastUpdated: result.lastUpdated
-      });
     } catch (err) {
-      console.error('❌ Failed to load FSD data:', err);
       setError(err.message || 'Failed to load FSD data');
       setData({});
     } finally {
@@ -38,7 +29,6 @@ export const useGoogleSheets = () => {
     loadData();
   }, [loadData]);
 
-  // Load data on mount
   useEffect(() => {
     loadData();
   }, [loadData]);
@@ -47,10 +37,6 @@ export const useGoogleSheets = () => {
     data,
     loading,
     error,
-    lastUpdated,
-    refreshData,
-    isLoading: loading,
-    hasError: !!error,
-    hasData: Object.keys(data).length > 0
+    refreshData
   };
 };

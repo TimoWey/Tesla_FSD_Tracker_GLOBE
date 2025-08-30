@@ -1,5 +1,5 @@
 /**
- * CountrySidebar Component
+ * CountrySidebar Component - Simplified Version
  * Displays detailed information about a selected country's FSD status
  */
 
@@ -8,45 +8,18 @@ import { X, ExternalLink, Calendar, MapPin, Info } from 'lucide-react';
 import clsx from 'clsx';
 
 // Constants
-import { STATUS_COLORS } from '../constants';
+import { STATUS_COLORS } from '../services/googleSheetsService';
 
 const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClose, isMobile }, ref) => {
   if (!isVisible || !selectedCountry) {
     return null;
   }
 
-  // Find matching country data
-  const findCountryData = (countryName) => {
-    // Direct match first
-    if (fsdData[countryName]) {
-      return { data: fsdData[countryName], key: countryName };
-    }
-    
-    // Try to find by geoName
-    for (const [key, data] of Object.entries(fsdData)) {
-      if (data.geoName === countryName) {
-        return { data, key };
-      }
-    }
-    
-    // Try partial matches for common variations
-    const normalizedName = countryName.toLowerCase().replace(/[^a-z]/g, '');
-    for (const [key, data] of Object.entries(fsdData)) {
-      const normalizedKey = key.toLowerCase().replace(/[^a-z]/g, '');
-      const normalizedGeoName = data.geoName.toLowerCase().replace(/[^a-z]/g, '');
-      
-      if (normalizedKey === normalizedName || normalizedGeoName === normalizedName) {
-        return { data, key };
-      }
-    }
-    
-    return null;
-  };
-
-  const countryMatch = findCountryData(selectedCountry);
+  // Simple country data lookup
+  const countryData = fsdData[selectedCountry];
   
   // If no data exists for this country, show "No Data" message
-  if (!countryMatch) {
+  if (!countryData) {
     return (
       <div 
         ref={ref}
@@ -102,8 +75,6 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
       </div>
     );
   }
-
-  const countryData = countryMatch.data;
 
   // Helper function to check if text is a URL
   const isUrl = (text) => {

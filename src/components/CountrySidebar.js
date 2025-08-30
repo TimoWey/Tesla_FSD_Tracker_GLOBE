@@ -31,22 +31,26 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-700/30 bg-gray-800/50">
-            <div className="flex items-center space-x-3 min-w-0 flex-1">
-              <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
-              <h2 className="text-lg sm:text-xl font-bold text-white truncate">{selectedCountry}</h2>
+          <div className="p-4 sm:p-6 border-b border-gray-700/30 bg-gray-800/50">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-3 min-w-0 flex-1">
+                <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                <h2 className="text-lg sm:text-xl font-bold text-white truncate">{selectedCountry}</h2>
+              </div>
+              <button 
+                onClick={onClose}
+                className="glass-button w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                title="Close"
+                aria-label="Close sidebar"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <div className="status-badge bg-gray-600 flex-shrink-0 ml-2">
-              No Data
+            
+            {/* Status Badge - New line within header */}
+            <div className="status-badge bg-gray-600 inline-flex items-center text-xs sm:text-sm px-3 py-1.5">
+              <span>No Data</span>
             </div>
-            <button 
-              onClick={onClose}
-              className="glass-button w-8 h-8 flex items-center justify-center flex-shrink-0 ml-2"
-              title="Close"
-              aria-label="Close sidebar"
-            >
-              <X className="w-4 h-4" />
-            </button>
           </div>
           
           {/* Content */}
@@ -252,25 +256,29 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
     >
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-700/30 bg-gray-800/50">
-          <div className="flex items-center space-x-3 min-w-0 flex-1">
-            <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
-            <h2 className="text-lg sm:text-xl font-bold text-white truncate">{countryData.geoName}</h2>
+        <div className="p-4 sm:p-6 border-b border-gray-700/30 bg-gray-800/50">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-3 min-w-0 flex-1">
+              <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
+              <h2 className="text-lg sm:text-xl font-bold text-white truncate">{selectedCountry}</h2>
+            </div>
+            <button 
+              onClick={onClose}
+              className="glass-button w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+              title="Close"
+              aria-label="Close sidebar"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
+          
+          {/* Status Badge - New line within header */}
           <div 
-            className="status-badge flex-shrink-0 ml-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5"
+            className="status-badge inline-flex items-center text-xs sm:text-sm px-3 py-1.5"
             style={{ backgroundColor: STATUS_COLORS[countryData.status] || '#6B7280' }}
           >
-            <span className="truncate max-w-20 sm:max-w-24">{countryData.status}</span>
+            <span>{countryData.status}</span>
           </div>
-          <button 
-            onClick={onClose}
-            className="glass-button w-8 h-8 flex items-center justify-center flex-shrink-0 ml-2"
-            title="Close"
-            aria-label="Close sidebar"
-          >
-            <X className="w-4 h-4" />
-          </button>
         </div>
         
         {/* Content */}

@@ -1,31 +1,13 @@
 /**
- * Google Sheets service for fetching spreadsheet data
+ * Google Sheets Service
+ * Handles data fetching and transformation from Google Sheets API
  */
 
 import { GOOGLE_SHEETS_CONFIG } from '../config/googleSheetsConfig';
+import { STATUS_COLORS, ERROR_MESSAGES } from '../constants';
 
-// Google Sheets API configuration
-const GOOGLE_SHEETS_API_KEY = GOOGLE_SHEETS_CONFIG.API_KEY;
-const SPREADSHEET_ID = GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID;
-const SHEET_NAME = GOOGLE_SHEETS_CONFIG.SHEET_NAME;
-
-// Status colors mapping
-export const statusColors = {
-  "Fully Released": "#22C55E", // Grass Green
-  "Partially Released": "#86EFAC", // Light Green
-  "Testing": "#F97316",        // Orange
-  "Pending": "#3B82F6",        // Blue
-  "Not Available": "#EF4444"   // Red
-};
-
-// Status labels mapping
-export const statusLabels = {
-  "Fully Released": "Fully Released",
-  "Partially Released": "Partially Released",
-  "Testing": "Testing",
-  "Pending": "Pending",
-  "Not Available": "Not Available"
-};
+// Status colors mapping (exported for use in other components)
+export { STATUS_COLORS };
 
 /**
  * Transforms raw spreadsheet data into the expected FSD data format
@@ -148,22 +130,22 @@ const transformSheetData = (values) => {
  */
 export const fetchFSDData = async () => {
   try {
-    if (!GOOGLE_SHEETS_API_KEY) {
-      throw new Error('Google Sheets API key not configured');
+    if (!GOOGLE_SHEETS_CONFIG.API_KEY) {
+      throw new Error(ERROR_MESSAGES.CONFIG_MISSING + ': Google Sheets API key not configured');
     }
 
-    if (!SPREADSHEET_ID) {
-      throw new Error('Spreadsheet ID not configured');
+    if (!GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID) {
+      throw new Error(ERROR_MESSAGES.CONFIG_MISSING + ': Spreadsheet ID not configured');
     }
 
     // URL encode the sheet name to handle spaces and special characters
-    const encodedSheetName = encodeURIComponent(SHEET_NAME);
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodedSheetName}?key=${GOOGLE_SHEETS_API_KEY}`;
+    const encodedSheetName = encodeURIComponent(GOOGLE_SHEETS_CONFIG.SHEET_NAME);
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/values/${encodedSheetName}?key=${GOOGLE_SHEETS_CONFIG.API_KEY}`;
     
     console.log('🔗 API URL:', url);
-    console.log('📋 Sheet name:', SHEET_NAME);
-    console.log('🔑 API Key configured:', !!GOOGLE_SHEETS_API_KEY);
-    console.log('📄 Spreadsheet ID:', SPREADSHEET_ID);
+    console.log('📋 Sheet name:', GOOGLE_SHEETS_CONFIG.SHEET_NAME);
+    console.log('🔑 API Key configured:', !!GOOGLE_SHEETS_CONFIG.API_KEY);
+    console.log('📄 Spreadsheet ID:', GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID);
     
     const response = await fetch(url);
     
@@ -215,11 +197,11 @@ export const fetchFSDData = async () => {
  */
 export const fetchSheetMetadata = async () => {
   try {
-    if (!GOOGLE_SHEETS_API_KEY || !SPREADSHEET_ID) {
-      throw new Error('API key or Spreadsheet ID not configured');
+    if (!GOOGLE_SHEETS_CONFIG.API_KEY || !GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID) {
+      throw new Error(ERROR_MESSAGES.CONFIG_MISSING + ': API key or Spreadsheet ID not configured');
     }
     
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?key=${GOOGLE_SHEETS_API_KEY}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}?key=${GOOGLE_SHEETS_CONFIG.API_KEY}`;
     
     const response = await fetch(url);
     
@@ -242,9 +224,9 @@ export const fetchSheetMetadata = async () => {
 export const testGoogleSheetsConnection = async () => {
   console.log('🧪 Testing Google Sheets connection...');
   console.log('Config:', {
-    API_KEY: GOOGLE_SHEETS_API_KEY ? '✅ Configured' : '❌ Missing',
-    SPREADSHEET_ID: SPREADSHEET_ID ? '✅ Configured' : '❌ Missing',
-    SHEET_NAME: SHEET_NAME ? '✅ Configured' : '❌ Missing'
+    API_KEY: GOOGLE_SHEETS_CONFIG.API_KEY ? '✅ Configured' : '❌ Missing',
+    SPREADSHEET_ID: GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID ? '✅ Configured' : '❌ Missing',
+    SHEET_NAME: GOOGLE_SHEETS_CONFIG.SHEET_NAME ? '✅ Configured' : '❌ Missing'
   });
   
   try {

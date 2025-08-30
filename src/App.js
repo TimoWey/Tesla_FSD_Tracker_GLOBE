@@ -20,7 +20,6 @@ import clsx from 'clsx';
 import GlobeComponent from './components/GlobeComponent';
 import CountrySidebar from './components/CountrySidebar';
 import AboutSidebar from './components/AboutSidebar';
-import LoadingScreen from './components/LoadingScreen';
 import ErrorScreen from './components/ErrorScreen';
 
 // Hooks
@@ -82,11 +81,6 @@ function App() {
     setSelectedCountry(null);
   }, []);
 
-  // Loading state
-  if (loading) {
-    return <LoadingScreen />;
-  }
-
   // Error state
   if (error) {
     return <ErrorScreen error={error} onRetry={refreshData} />;
@@ -99,6 +93,17 @@ function App() {
         onCountrySelect={handleCountrySelect} 
         fsdData={fsdData} 
       />
+      
+      {/* Loading Overlay - shown at bottom center when loading */}
+      {loading && (
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-30">
+          <div className="bg-black/40 backdrop-blur-sm rounded-full px-6 py-3 border border-white/20">
+            <p className="text-white/70 text-sm font-medium">
+              Loading global FSD data...
+            </p>
+          </div>
+        </div>
+      )}
       
       {/* About Sidebar Toggle Button */}
       <button 

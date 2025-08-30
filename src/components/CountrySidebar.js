@@ -25,7 +25,7 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
         ref={ref}
         className={clsx(
           "sidebar-panel right-0 z-50",
-          isMobile ? "w-11/12 max-w-md" : "w-96",
+          isMobile ? "w-full" : "w-96",
           isVisible ? "translate-x-0" : "translate-x-full"
         )}
       >
@@ -250,7 +250,7 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
       ref={ref}
       className={clsx(
         "sidebar-panel right-0 z-50",
-        isMobile ? "w-11/12 max-w-md" : "w-96",
+        isMobile ? "w-full" : "w-96",
         isVisible ? "translate-x-0" : "translate-x-full"
       )}
     >

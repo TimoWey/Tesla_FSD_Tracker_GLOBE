@@ -1,51 +1,74 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import GlobeComponent from './GlobeComponent';
-import Sidebar from './Sidebar';
-import LeftSidebar from './LeftSidebar';
-import { fetchFSDData } from './services/googleSheetsService';
-import './App.css';
+/**
+ * Tesla FSD Tracker Globe - Main Application Component
+ * 
+ * This component serves as the main entry point for the application,
+ * managing the overall state and rendering the 3D globe with sidebars.
+ * 
+ * Key Features:
+ * - 3D Interactive Globe visualization
+ * - Country selection and information display
+ * - About panel with project information
+ * - Responsive design for mobile and desktop
+ * - Real-time data from Google Sheets
+ */
+
+import React, { useState, useCallback, useEffect } from 'react';
+import { Info } from 'lucide-react';
+import clsx from 'clsx';
+
+// Components
+import GlobeComponent from './components/GlobeComponent';
+import CountrySidebar from './components/CountrySidebar';
+import AboutSidebar from './components/AboutSidebar';
+import LoadingScreen from './components/LoadingScreen';
+import ErrorScreen from './components/ErrorScreen';
+
+// Hooks
+import { useGoogleSheets } from './hooks/useGoogleSheets';
+import { useSidebar } from './hooks/useSidebar';
+
+// Constants
+import { BREAKPOINTS } from './constants';
 
 function App() {
+  // Custom hooks for data and sidebar management
+  const { data: fsdData, loading, error, refreshData } = useGoogleSheets();
+  const { isVisible: isAboutVisible, show: showAbout, hide: hideAbout, sidebarRef: aboutSidebarRef } = useSidebar();
+  
+  // Local state
   const [selectedCountry, setSelectedCountry] = useState(null);
-  const [fsdData, setFsdData] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [leftSidebarVisible, setLeftSidebarVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
+  // Detect mobile device
   useEffect(() => {
-    const loadFSDData = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchFSDData();
-        setFsdData(data.fsdData);
-        setError(null);
-      } catch (err) {
-        console.error('Failed to load FSD data:', err);
-        setError('Failed to load FSD data. Please check your configuration and try again.');
-        setFsdData({});
-      } finally {
-        setLoading(false);
-      }
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= BREAKPOINTS.MOBILE);
     };
 
-    loadFSDData();
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Handle Escape key to close left sidebar
+  // Handle Escape key to close sidebars
   useEffect(() => {
     const handleEscape = (event) => {
-      if (event.key === 'Escape' && leftSidebarVisible) {
-        setLeftSidebarVisible(false);
+      if (event.key === 'Escape') {
+        if (isAboutVisible) {
+          hideAbout();
+        }
+        if (selectedCountry) {
+          setSelectedCountry(null);
+        }
       }
     };
 
     document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [leftSidebarVisible]);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isAboutVisible, hideAbout, selectedCountry]);
 
-  // Memoize the country selection handler to prevent unnecessary re-renders
+  // Country selection handler
   const handleCountrySelect = useCallback((country, showInfo = false) => {
     if (showInfo) {
       setSelectedCountry(country);
@@ -54,81 +77,58 @@ function App() {
     }
   }, []);
 
-  const toggleLeftSidebar = useCallback(() => {
-    setLeftSidebarVisible(prev => !prev);
+  // Close country sidebar
+  const closeCountrySidebar = useCallback(() => {
+    setSelectedCountry(null);
   }, []);
 
+  // Loading state
   if (loading) {
-    return (
-      <div className="App">
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '100vh',
-          fontSize: '18px',
-          color: '#666'
-        }}>
-          Loading FSD data from spreadsheet...
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
+  // Error state
   if (error) {
-    return (
-      <div className="App">
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '100vh',
-          fontSize: '18px',
-          color: '#d32f2f',
-          textAlign: 'center',
-          padding: '20px'
-        }}>
-          <div>
-            <div style={{ marginBottom: '20px' }}>⚠️ Error Loading Data</div>
-            <div>{error}</div>
-            <div style={{ 
-              marginTop: '20px', 
-              fontSize: '14px', 
-              color: '#666',
-              maxWidth: '500px'
-            }}>
-              Please check that you have:
-              <ul style={{ textAlign: 'left', marginTop: '10px' }}>
-                <li>Set up your Google Sheets API key in the config file</li>
-                <li>Made your spreadsheet publicly accessible</li>
-                <li>Used the correct spreadsheet ID and sheet name</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <ErrorScreen error={error} onRetry={refreshData} />;
   }
 
   return (
-    <div className="App">
-      <GlobeComponent onCountrySelect={handleCountrySelect} fsdData={fsdData} />
+    <div className="relative w-screen h-screen overflow-hidden bg-black">
+      {/* Main 3D Globe */}
+      <GlobeComponent 
+        onCountrySelect={handleCountrySelect} 
+        fsdData={fsdData} 
+      />
       
-      {/* Left Sidebar Toggle Button */}
+      {/* About Sidebar Toggle Button */}
       <button 
-        className={`left-sidebar-toggle ${leftSidebarVisible ? 'active' : ''}`}
-        onClick={toggleLeftSidebar}
-        title="Toggle About Panel"
+        className={clsx(
+          "fixed top-5 left-5 z-40 w-12 h-12 rounded-full",
+          "glass-button flex items-center justify-center",
+          "transition-all duration-200 ease-out",
+          isAboutVisible && "bg-primary-600/30 border-primary-500/60"
+        )}
+        onClick={showAbout}
+        title="About Tesla FSD Tracker"
+        aria-label="Open about panel"
       >
-        <span className="toggle-icon">ℹ️</span>
+        <Info className="w-5 h-5" />
       </button>
       
-      <LeftSidebar isVisible={leftSidebarVisible} onClose={() => setLeftSidebarVisible(false)} />
-      <Sidebar 
+      {/* About Sidebar */}
+      <AboutSidebar 
+        isVisible={isAboutVisible}
+        onClose={hideAbout}
+        ref={aboutSidebarRef}
+      />
+      
+      {/* Country Information Sidebar */}
+      <CountrySidebar 
         selectedCountry={selectedCountry}
         fsdData={fsdData}
         isVisible={!!selectedCountry}
-        onClose={() => setSelectedCountry(null)}
+        onClose={closeCountrySidebar}
+        isMobile={isMobile}
       />
     </div>
   );

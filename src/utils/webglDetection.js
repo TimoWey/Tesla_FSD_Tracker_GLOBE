@@ -1,4 +1,14 @@
-// WebGL detection utility for mobile compatibility
+/**
+ * WebGL Detection Utility
+ * Provides WebGL support detection and mobile-optimized settings for the 3D globe
+ */
+
+import { GLOBE_CONFIG } from '../constants';
+
+/**
+ * Detects WebGL support and provides detailed information about the graphics capabilities
+ * @returns {Object} WebGL support information
+ */
 export const detectWebGLSupport = () => {
   try {
     const canvas = document.createElement('canvas');
@@ -40,24 +50,60 @@ export const detectWebGLSupport = () => {
   }
 };
 
+/**
+ * Detects if the current device is a mobile device
+ * @returns {boolean} True if mobile device
+ */
 export const isMobileDevice = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
          (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
 };
 
+/**
+ * Returns mobile-optimized settings for the 3D globe
+ * @returns {Object} Mobile-optimized configuration
+ */
 export const getMobileOptimizedSettings = () => {
   const isMobile = isMobileDevice();
   
+  return isMobile ? GLOBE_CONFIG.MOBILE : GLOBE_CONFIG.DESKTOP;
+};
+
+/**
+ * Gets device-specific performance recommendations
+ * @returns {Object} Performance recommendations
+ */
+export const getPerformanceRecommendations = () => {
+  const isMobile = isMobileDevice();
+  const webglSupport = detectWebGLSupport();
+  
+  if (!webglSupport.supported) {
+    return {
+      canRun: false,
+      reason: webglSupport.reason,
+      recommendations: ['Update your browser', 'Enable hardware acceleration', 'Check graphics drivers']
+    };
+  }
+
+  if (isMobile) {
+    return {
+      canRun: true,
+      performance: 'mobile-optimized',
+      recommendations: [
+        'Close other apps for better performance',
+        'Use landscape mode for better view',
+        'Ensure device is not in power-saving mode'
+      ]
+    };
+  }
+
   return {
-    antialias: !isMobile,
-    powerPreference: isMobile ? 'default' : 'high-performance',
-    alpha: true,
-    preserveDrawingBuffer: false,
-    failIfMajorPerformanceCaveat: false,
-    // Reduce quality settings on mobile
-    polygonResolution: isMobile ? 3 : 5,
-    dampingFactor: isMobile ? 0.1 : 0.15,
-    autoRotateSpeed: isMobile ? 0.15 : 0.25,
-    initialAltitude: isMobile ? 3.0 : 2.5
+    canRun: true,
+    performance: 'high-performance',
+    recommendations: [
+      'Use high-quality graphics settings',
+      'Enable hardware acceleration in browser',
+      'Close unnecessary browser tabs'
+    ]
   };
 };

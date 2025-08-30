@@ -111,17 +111,65 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
     return text.includes('http://') || text.includes('https://') || text.includes('www.');
   };
 
+  // Helper function to detect if text contains separators
+  const hasSeparators = (text) => {
+    if (typeof text !== 'string') return false;
+    return text.includes(';') || text.includes('\n') || text.includes('|');
+  };
+
+  // Helper function to split text by separators
+  const splitBySeparators = (text) => {
+    if (typeof text !== 'string') return [text];
+    return text
+      .split(/[;\n|]/)
+      .map(item => item.trim())
+      .filter(item => item.length > 0);
+  };
+
   // Helper function to render list items
   const renderListItems = (items, icon, className = '') => {
     if (!items) return null;
     
     const itemArray = Array.isArray(items) ? items : [items];
     
+    // Check if the single item contains separators (like semicolons)
+    if (itemArray.length === 1) {
+      const singleItem = itemArray[0];
+      
+      // Check if the text contains common separators
+      if (hasSeparators(singleItem)) {
+        // Split by separators and filter out empty items
+        const splitItems = splitBySeparators(singleItem);
+        
+        // If we have multiple items after splitting, show as list
+        if (splitItems.length > 1) {
+          return (
+            <ul className={clsx("space-y-2", className)}>
+              {splitItems.map((item, index) => (
+                <li key={index} className="flex items-start space-x-3 text-gray-300">
+                  <span className="text-primary-400 text-lg leading-none mt-0.5 flex-shrink-0">{icon}</span>
+                  <span className="flex-1 text-sm sm:text-base leading-relaxed break-words">{item}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
+      }
+      
+      // Single item with no separators - display as plain text without bullet points
+      return (
+        <p className={clsx("text-gray-300 text-sm sm:text-base leading-relaxed break-words", className)}>
+          {singleItem}
+        </p>
+      );
+    }
+    
+    // Multiple items - display as list with bullet points
     return (
       <ul className={clsx("space-y-2", className)}>
         {itemArray.map((item, index) => (
           <li key={index} className="flex items-start space-x-3 text-gray-300">
-            <span className="text-primary-400 mt-1 flex-shrink-0">{icon}</span>
+            <span className="text-primary-400 text-lg leading-none mt-0.5 flex-shrink-0">{icon}</span>
             <span className="flex-1 text-sm sm:text-base leading-relaxed break-words">{item}</span>
           </li>
         ))}
@@ -135,11 +183,73 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
     
     const itemArray = Array.isArray(items) ? items : [items];
     
+    // Check if the single item contains separators (like semicolons)
+    if (itemArray.length === 1) {
+      const singleItem = itemArray[0];
+      
+      // Check if the text contains common separators
+      if (hasSeparators(singleItem)) {
+        // Split by separators and filter out empty items
+        const splitItems = splitBySeparators(singleItem);
+        
+        // If we have multiple items after splitting, show as list
+        if (splitItems.length > 1) {
+          return (
+            <ul className="space-y-2">
+              {splitItems.map((item, index) => (
+                <li key={index} className="flex items-start space-x-3">
+                  <span className="text-primary-400 text-lg leading-none mt-0.5 flex-shrink-0">•</span>
+                  {isUrl(item) ? (
+                    <a 
+                      href={item} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary-400 hover:text-primary-300 underline transition-colors duration-200 text-sm sm:text-base leading-relaxed break-all"
+                      title={`Click to open: ${item}`}
+                    >
+                      {item}
+                      <ExternalLink className="inline w-3 h-3 ml-1 flex-shrink-0" />
+                    </a>
+                  ) : (
+                    <span className="text-gray-300 flex-1 text-sm sm:text-base leading-relaxed break-words">{item}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          );
+        }
+      }
+      
+      // Single item with no separators - display as plain text without bullet points
+      const item = singleItem;
+      if (isUrl(item)) {
+        return (
+          <a 
+            href={item} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-primary-400 hover:text-primary-300 underline transition-colors duration-200 text-sm sm:text-base leading-relaxed break-all"
+            title={`Click to open: ${item}`}
+          >
+            {item}
+            <ExternalLink className="inline w-3 h-3 ml-1 flex-shrink-0" />
+          </a>
+        );
+      } else {
+        return (
+          <p className="text-gray-300 text-sm sm:text-base leading-relaxed break-words">
+            {item}
+          </p>
+        );
+      }
+    }
+    
+    // Multiple items - display as list with bullet points
     return (
       <ul className="space-y-2">
         {itemArray.map((item, index) => (
           <li key={index} className="flex items-start space-x-3">
-            <span className="text-primary-400 mt-1 flex-shrink-0">•</span>
+            <span className="text-primary-400 text-lg leading-none mt-0.5 flex-shrink-0">•</span>
             {isUrl(item) ? (
               <a 
                 href={item} 

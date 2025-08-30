@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/Tesla_FSD_Tracker_GLOBE/static/css/main.dbb4790a.css",
-    "main.js": "/Tesla_FSD_Tracker_GLOBE/static/js/main.2fc1473b.js",
+    "main.css": "/Tesla_FSD_Tracker_GLOBE/static/css/main.ff3a7488.css",
+    "main.js": "/Tesla_FSD_Tracker_GLOBE/static/js/main.6a5951e2.js",
     "static/media/BlueMarbleTexture_10800x5400.png": "/Tesla_FSD_Tracker_GLOBE/static/media/BlueMarbleTexture_10800x5400.7f2e424fd7373dabc088.png",
     "static/media/BlueMarbleTexture_5400x1700.jpg": "/Tesla_FSD_Tracker_GLOBE/static/media/BlueMarbleTexture_5400x1700.322bf4cc6dccdce69fa6.jpg",
     "index.html": "/Tesla_FSD_Tracker_GLOBE/index.html",
-    "main.dbb4790a.css.map": "/Tesla_FSD_Tracker_GLOBE/static/css/main.dbb4790a.css.map",
-    "main.2fc1473b.js.map": "/Tesla_FSD_Tracker_GLOBE/static/js/main.2fc1473b.js.map"
+    "main.ff3a7488.css.map": "/Tesla_FSD_Tracker_GLOBE/static/css/main.ff3a7488.css.map",
+    "main.6a5951e2.js.map": "/Tesla_FSD_Tracker_GLOBE/static/js/main.6a5951e2.js.map"
   },
   "entrypoints": [
-    "static/css/main.dbb4790a.css",
-    "static/js/main.2fc1473b.js"
+    "static/css/main.ff3a7488.css",
+    "static/js/main.6a5951e2.js"
   ]
 }

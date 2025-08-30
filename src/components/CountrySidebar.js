@@ -58,17 +58,17 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-700/30 bg-gray-800/50">
-            <div className="flex items-center space-x-3">
-              <MapPin className="w-5 h-5 text-gray-400" />
-              <h2 className="text-xl font-bold text-white">{selectedCountry}</h2>
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-700/30 bg-gray-800/50">
+            <div className="flex items-center space-x-3 min-w-0 flex-1">
+              <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
+              <h2 className="text-lg sm:text-xl font-bold text-white truncate">{selectedCountry}</h2>
             </div>
-            <div className="status-badge bg-gray-600">
+            <div className="status-badge bg-gray-600 flex-shrink-0 ml-2">
               No Data
             </div>
             <button 
               onClick={onClose}
-              className="glass-button w-8 h-8 flex items-center justify-center"
+              className="glass-button w-8 h-8 flex items-center justify-center flex-shrink-0 ml-2"
               title="Close"
               aria-label="Close sidebar"
             >
@@ -77,23 +77,23 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
           </div>
           
           {/* Content */}
-          <div className="flex-1 p-6 space-y-6 overflow-y-auto scrollbar-thin">
+          <div className="flex-1 p-4 sm:p-6 space-y-6 overflow-y-auto scrollbar-thin">
             <div className="space-y-4">
               <div className="flex items-center space-x-2 text-gray-400">
-                <Info className="w-4 h-4" />
+                <Info className="w-4 h-4 flex-shrink-0" />
                 <span className="text-sm">Information</span>
               </div>
-              <p className="text-gray-300">
+              <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
                 No FSD (Full Self-Driving) data available for this country at this time.
               </p>
             </div>
             
             <div className="space-y-4">
               <div className="flex items-center space-x-2 text-gray-400">
-                <Info className="w-4 h-4" />
+                <Info className="w-4 h-4 flex-shrink-0" />
                 <span className="text-sm">Note</span>
               </div>
-              <p className="text-gray-300">
+              <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
                 This country may not have Tesla vehicles, FSD testing programs, or regulatory frameworks in place yet.
               </p>
             </div>
@@ -121,8 +121,8 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
       <ul className={clsx("space-y-2", className)}>
         {itemArray.map((item, index) => (
           <li key={index} className="flex items-start space-x-3 text-gray-300">
-            <span className="text-primary-400 mt-1">{icon}</span>
-            <span className="flex-1">{item}</span>
+            <span className="text-primary-400 mt-1 flex-shrink-0">{icon}</span>
+            <span className="flex-1 text-sm sm:text-base leading-relaxed break-words">{item}</span>
           </li>
         ))}
       </ul>
@@ -139,20 +139,20 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
       <ul className="space-y-2">
         {itemArray.map((item, index) => (
           <li key={index} className="flex items-start space-x-3">
-            <span className="text-primary-400 mt-1">•</span>
+            <span className="text-primary-400 mt-1 flex-shrink-0">•</span>
             {isUrl(item) ? (
               <a 
                 href={item} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-primary-400 hover:text-primary-300 underline transition-colors duration-200"
+                className="text-primary-400 hover:text-primary-300 underline transition-colors duration-200 text-sm sm:text-base leading-relaxed break-all"
                 title={`Click to open: ${item}`}
               >
                 {item}
-                <ExternalLink className="inline w-3 h-3 ml-1" />
+                <ExternalLink className="inline w-3 h-3 ml-1 flex-shrink-0" />
               </a>
             ) : (
-              <span className="text-gray-300 flex-1">{item}</span>
+              <span className="text-gray-300 flex-1 text-sm sm:text-base leading-relaxed break-words">{item}</span>
             )}
           </li>
         ))}
@@ -171,20 +171,20 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
     >
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-700/30 bg-gray-800/50">
-          <div className="flex items-center space-x-3 min-w-0">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-700/30 bg-gray-800/50">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
             <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
-            <h2 className="text-xl font-bold text-white truncate">{countryData.geoName}</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-white truncate">{countryData.geoName}</h2>
           </div>
           <div 
-            className="status-badge flex-shrink-0"
+            className="status-badge flex-shrink-0 ml-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5"
             style={{ backgroundColor: STATUS_COLORS[countryData.status] || '#6B7280' }}
           >
-            {countryData.status}
+            <span className="truncate max-w-20 sm:max-w-24">{countryData.status}</span>
           </div>
           <button 
             onClick={onClose}
-            className="glass-button w-8 h-8 flex items-center justify-center flex-shrink-0"
+            className="glass-button w-8 h-8 flex items-center justify-center flex-shrink-0 ml-2"
             title="Close"
             aria-label="Close sidebar"
           >
@@ -193,10 +193,10 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
         </div>
         
         {/* Content */}
-        <div className="flex-1 p-6 space-y-6 overflow-y-auto scrollbar-thin">
+        <div className="flex-1 p-4 sm:p-6 space-y-6 overflow-y-auto scrollbar-thin">
           {/* Details Section */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white border-b border-gray-700/30 pb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-white border-b border-gray-700/30 pb-2">
               Details
             </h3>
             {renderListItems(countryData.details, '•')}
@@ -204,7 +204,7 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
 
           {/* Latest Update Section */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white border-b border-gray-700/30 pb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-white border-b border-gray-700/30 pb-2">
               Latest Update
             </h3>
             {renderListItems(countryData.latestUpdate, '•')}
@@ -212,7 +212,7 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
 
           {/* Milestones Section */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white border-b border-gray-700/30 pb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-white border-b border-gray-700/30 pb-2">
               Milestones
             </h3>
             {renderListItems(countryData.milestones, '•')}
@@ -220,7 +220,7 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
 
           {/* Source Section */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white border-b border-gray-700/30 pb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-white border-b border-gray-700/30 pb-2">
               Sources
             </h3>
             {renderLinks(countryData.source)}
@@ -228,12 +228,12 @@ const CountrySidebar = forwardRef(({ selectedCountry, fsdData, isVisible, onClos
 
           {/* Last Updated Section */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white border-b border-gray-700/30 pb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-white border-b border-gray-700/30 pb-2">
               Last Updated
             </h3>
             <div className="flex items-center space-x-2 text-primary-400">
-              <Calendar className="w-4 h-4" />
-              <span className="font-medium">{countryData.lastUpdated}</span>
+              <Calendar className="w-4 h-4 flex-shrink-0" />
+              <span className="font-medium text-sm sm:text-base break-words">{countryData.lastUpdated}</span>
             </div>
           </div>
         </div>

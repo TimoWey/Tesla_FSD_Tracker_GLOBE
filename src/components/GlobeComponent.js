@@ -334,8 +334,10 @@ const GlobeComponent = ({ onCountrySelect, fsdData }) => {
     >
       {/* Mobile tooltip for highlighted countries */}
       {highlightedCountryRef.current && isMobile && (
-        <div className="mobile-tooltip">
-          Tap again to see information
+        <div className="mobile-tooltip max-w-[90vw] text-center">
+          <span className="break-words text-xs sm:text-sm">
+            Tap again to see information
+          </span>
         </div>
       )}
     </div>
